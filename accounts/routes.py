@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
+from sqlalchemy import select
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from .models import User
@@ -19,12 +20,18 @@ async def accounts_base_api() -> dict[str, str]:
 
 @accounts_routes.post("/signup", status_code=status.HTTP_201_CREATED)
 async def signup_api(user: SignupModel):
-    db_email = session.query(User).filter(User.email == user.email).first()
+    result = await session.execute(
+        select(User).where(User.email == user.email)
+    )
+    db_email = result.scalar_one_or_none()
     if db_email:
-        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    db_username = session.query(User).filter(User.username == user.username).first()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+    result = await session.execute(
+        select(User).where(User.username == user.username)
+    )
+    db_username = result.scalar_one_or_none()
     if db_username:
-        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
 
     new_user = User(
         username=user.username,
@@ -33,5 +40,13 @@ async def signup_api(user: SignupModel):
         fullname=user.fullname,
         phone_number=user.phone_number,
     )
+    resp_model = {
+        "username": new_user.username,
+        "email": new_user.email,
+        "fullname": new_user.fullname,
+        "phone_number": new_user.phone_number,
+    }
     session.add(new_user)
-    return user
+    await session.commit()
+    await session.refresh(new_user)
+    return resp_model

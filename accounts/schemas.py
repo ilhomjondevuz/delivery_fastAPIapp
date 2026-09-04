@@ -1,27 +1,24 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SignupModel(BaseModel):
-    id: Optional[int]
     username: str
-    email: Optional[str]
-    fullname: Optional[str]
-    phone_number: Optional[str]
+    email: Optional[str] = None
+    fullname: Optional[str] = None
+    phone_number: Optional[str] = None
     password: str
 
-    class Config:
-        orm_mode = True
-        schema_extra = {
-            "example": {
-                "username": "test",
-                "email": "test@mail.org",
-                "fullname": "test",
-                "phone": "test",
-                "password": "qwerty123!",
-                "is_active": True,
-                "is_superuser": False,
-                "is_staff": False
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            'example': {
+                "username": "testuser",
+                "email": "test@mail.com",
+                "fullname": "Test User",
+                "phone_number": "+998901234567",
+                "password": "qwerty123!"
             }
         }
+    )
