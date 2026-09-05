@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 products_routes = APIRouter(
     prefix="/products",
+    tags=["products"],
 )
 
 @products_routes.get("/")

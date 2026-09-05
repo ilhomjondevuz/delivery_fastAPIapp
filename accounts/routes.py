@@ -1,15 +1,21 @@
 from fastapi import APIRouter, HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from werkzeug.security import generate_password_hash, check_password_hash
+from fastapi.security import OAuth2PasswordBearer
 
+from core.security import create_access_token, create_refresh_token
 from .models import User
-from .schemas import SignupModel
+from .schemas import SignupModel, LoginModel
 from database import Session, engine
+
+oauth_scheme = OAuth2PasswordBearer(tokenUrl="/accounts/login")
 
 session = Session(bind=engine)
 
 accounts_routes = APIRouter(
     prefix="/accounts",
+    tags=["accounts"],
 )
 
 @accounts_routes.get("/")
@@ -49,4 +55,33 @@ async def signup_api(user: SignupModel):
     session.add(new_user)
     await session.commit()
     await session.refresh(new_user)
+    resp_model["id"] = new_user.id
     return resp_model
+
+@accounts_routes.post("/login", status_code=status.HTTP_200_OK)
+async def login_view(user: LoginModel):
+    result = await session.execute(
+        select(User).where(User.username == user.username)
+    )
+
+    db_user = result.scalar_one_or_none()
+
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if not check_password_hash(db_user.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password",
+        )
+
+    access_token = create_access_token(db_user.username)
+    refresh_token = create_refresh_token(db_user.username)
+
+    return {
+        "access": access_token,
+        "refresh": refresh_token,
+    }

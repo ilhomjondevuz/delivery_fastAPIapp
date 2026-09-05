@@ -1,7 +1,11 @@
 from typing import Optional
 
+from environs import Env
 from pydantic import BaseModel, ConfigDict
 
+
+env = Env()
+env.read_env()
 
 class SignupModel(BaseModel):
     username: str
@@ -22,3 +26,10 @@ class SignupModel(BaseModel):
             }
         }
     )
+
+class SettingsModel(BaseModel):
+    authjwt_secret_key: str = env.str("AUTHJWT_SECRET_KEY")
+
+class LoginModel(BaseModel):
+    username: str
+    password: str
