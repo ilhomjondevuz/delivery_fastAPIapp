@@ -1,15 +1,11 @@
-from fastapi import APIRouter, HTTPException, status
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy import select
 from werkzeug.security import generate_password_hash, check_password_hash
-from fastapi.security import OAuth2PasswordBearer
 
-from core.security import create_access_token, create_refresh_token
+from core.security import create_access_token, create_refresh_token, get_current_user
 from .models import User
 from .schemas import SignupModel, LoginModel
 from database import Session, engine
-
-oauth_scheme = OAuth2PasswordBearer(tokenUrl="/accounts/login")
 
 session = Session(bind=engine)
 
@@ -19,7 +15,7 @@ accounts_routes = APIRouter(
 )
 
 @accounts_routes.get("/")
-async def accounts_base_api() -> dict[str, str]:
+async def accounts_base_api(current_user:str = Depends(get_current_user)) -> dict[str, str]:
     return {
         'message': 'Welcome to Accounts API',
     }
