@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from core.security import create_access_token, create_refresh_token, get_current_user
@@ -57,7 +57,11 @@ async def signup_api(user: SignupModel):
 @accounts_routes.post("/login", status_code=status.HTTP_200_OK)
 async def login_view(user: LoginModel):
     result = await session.execute(
-        select(User).where(User.username == user.username)
+        select(User).where(
+            or_(
+                User.username == user.username_or_email,
+                User.email == user.username_or_email)
+        )
     )
 
     db_user = result.scalar_one_or_none()

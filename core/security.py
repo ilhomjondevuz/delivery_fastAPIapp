@@ -57,13 +57,13 @@ def create_refresh_token(username: str) -> str:
 def get_current_user(token: str = Depends(oauth_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        username_or_email: str = payload.get("sub")
+        if username_or_email is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Could not validate credentials",
             )
-        return username
+        return username_or_email
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

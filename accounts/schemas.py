@@ -9,7 +9,7 @@ env.read_env()
 
 class SignupModel(BaseModel):
     username: str
-    email: Optional[str] = None
+    email: str
     fullname: Optional[str] = None
     phone_number: Optional[str] = None
     password: str
@@ -31,5 +31,5 @@ class SettingsModel(BaseModel):
     authjwt_secret_key: str = env.str("AUTHJWT_SECRET_KEY")
 
 class LoginModel(BaseModel):
-    username: str
+    username_or_email: str
     password: str
