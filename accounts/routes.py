@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy import select, or_
 from werkzeug.security import generate_password_hash, check_password_hash
-from fastapi.responses import JSONResponse
 
 from core.security import create_access_token, create_refresh_token, get_current_user
 from .models import User
