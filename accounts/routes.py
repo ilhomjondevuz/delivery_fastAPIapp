@@ -54,13 +54,18 @@ async def signup_api(user: SignupModel):
     resp_model["id"] = new_user.id
     return resp_model
 
-@accounts_routes.post("/login", status_code=status.HTTP_200_OK)
+@accounts_routes.post(
+    "/login",
+    status_code=status.HTTP_200_OK,
+    response_model=LoginResponse,
+)
 async def login_view(user: LoginModel) -> LoginResponse:
     result = await session.execute(
         select(User).where(
             or_(
                 User.username == user.username_or_email,
-                User.email == user.username_or_email)
+                User.email == user.username_or_email,
+            )
         )
     )
 
@@ -82,8 +87,8 @@ async def login_view(user: LoginModel) -> LoginResponse:
     refresh_token = create_refresh_token(db_user.username)
 
     return {
-        'access_token': access_token,
-        'refresh_token': refresh_token,
+        "access": access_token,
+        "refresh": refresh_token,
     }
 
 @accounts_routes.post('/refresh', status_code=status.HTTP_200_OK)

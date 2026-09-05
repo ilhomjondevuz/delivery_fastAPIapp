@@ -27,9 +27,6 @@ class SignupModel(BaseModel):
         }
     )
 
-class SettingsModel(BaseModel):
-    authjwt_secret_key: str = env.str("AUTHJWT_SECRET_KEY")
-
 class LoginModel(BaseModel):
     username_or_email: str
     password: str

@@ -11,7 +11,7 @@ from starlette import status
 env = Env()
 env.read_env()
 
-SECRET_KEY = env.str("AUTHJWT_SECRET_KEY")
+SECRET_KEY = env.str("JWT_SECRET_KEY")
 ALGORITHM = env.str("ALGORITHM")
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/accounts/login")

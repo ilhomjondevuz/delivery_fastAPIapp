@@ -1,3 +1,5 @@
+from sqlalchemy.orm import relationship
+
 from database import Base
 from sqlalchemy import Column, Integer, String, Boolean, Text
 
@@ -12,6 +14,11 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
     is_staff = Column(Boolean, default=False)
+
+    orders = relationship(
+        "Order",
+        back_populates="user",
+    )
 
     def __repr__(self):
         return '<User %r>' % self.username
