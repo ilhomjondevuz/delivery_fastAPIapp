@@ -33,3 +33,13 @@ class SettingsModel(BaseModel):
 class LoginModel(BaseModel):
     username_or_email: str
     password: str
+
+class RefreshTokenModel(BaseModel):
+    refresh: str
+
+class RefreshTokenResponse(BaseModel):
+    access: str
+
+class LoginResponse(BaseModel):
+    access: str
+    refresh: str

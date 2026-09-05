@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import jwt
 from environs import Env
@@ -11,7 +12,7 @@ env = Env()
 env.read_env()
 
 SECRET_KEY = env.str("AUTHJWT_SECRET_KEY")
-ALGORITHM = "HS256"
+ALGORITHM = env.str("ALGORITHM")
 
 oauth_scheme = OAuth2PasswordBearer(tokenUrl="/accounts/login")
 
@@ -20,7 +21,8 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 
 def create_access_token(username: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
+    tashkent_time_now = datetime.now(ZoneInfo('Asia/Tashkent'))
+    expire = tashkent_time_now + timedelta(
         minutes=ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
@@ -38,7 +40,7 @@ def create_access_token(username: str) -> str:
 
 
 def create_refresh_token(username: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
+    expire = datetime.now(ZoneInfo('Asia/Tashkent')) + timedelta(
         days=REFRESH_TOKEN_EXPIRE_DAYS
     )
 
@@ -57,13 +59,13 @@ def create_refresh_token(username: str) -> str:
 def get_current_user(token: str = Depends(oauth_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username_or_email: str = payload.get("sub")
-        if username_or_email is None:
+        username: str = payload.get("sub")
+        if username is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Could not validate credentials",
             )
-        return username_or_email
+        return username
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

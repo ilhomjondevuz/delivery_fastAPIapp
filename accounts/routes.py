@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy import select, or_
 from werkzeug.security import generate_password_hash, check_password_hash
+from fastapi.responses import JSONResponse
 
 from core.security import create_access_token, create_refresh_token, get_current_user
 from .models import User
-from .schemas import SignupModel, LoginModel
+from .schemas import SignupModel, LoginModel, RefreshTokenModel, RefreshTokenResponse, LoginResponse
 from database import Session, engine
 
 session = Session(bind=engine)
@@ -55,7 +56,7 @@ async def signup_api(user: SignupModel):
     return resp_model
 
 @accounts_routes.post("/login", status_code=status.HTTP_200_OK)
-async def login_view(user: LoginModel):
+async def login_view(user: LoginModel) -> LoginResponse:
     result = await session.execute(
         select(User).where(
             or_(
@@ -82,6 +83,20 @@ async def login_view(user: LoginModel):
     refresh_token = create_refresh_token(db_user.username)
 
     return {
-        "access": access_token,
-        "refresh": refresh_token,
+        'access_token': access_token,
+        'refresh_token': refresh_token,
+    }
+
+@accounts_routes.post('/refresh', status_code=status.HTTP_200_OK)
+async def refresh_view(refresh_token: RefreshTokenModel) -> RefreshTokenResponse:
+    refresh_token = refresh_token.refresh
+    user = get_current_user(refresh_token)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token expired. Logout",
+        )
+    access = create_access_token(user)
+    return {
+        'access': access,
     }
