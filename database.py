@@ -10,6 +10,7 @@ DATABASE_URL = env.str('DATABASE_URL')
 
 engine = create_async_engine(
     DATABASE_URL,
+    connect_args={"check_same_thread": False},
     echo=True
 )
 
